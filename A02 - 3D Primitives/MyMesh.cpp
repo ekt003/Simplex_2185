@@ -276,7 +276,37 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//creating rotation matrix
+	glm::mat4 rotationMatrix(1);
+	//generating angle of rotation
+	float angleOfRotation = (2 * PI) / a_nSubdivisions;
+	rotationMatrix = glm::rotate(rotationMatrix, angleOfRotation, vector3(0, 0, a_fRadius));
+	//defining start points
+	vector3 startingPoint = vector3(0, 0, 0);
+	vector3 startingPoint2 = vector3(a_fRadius, 0, 0);
+	vector3 startingPoint3 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+
+	//makes base bit
+	for (uint i = 0; i < a_nSubdivisions; i++) {
+		//calculates new starting points
+		startingPoint2 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+		startingPoint3 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+
+		//displays to screen
+		AddTri(startingPoint, startingPoint2, startingPoint3);
+		
+	}
+
+	//makes cone bit
+	startingPoint = vector3(0, 0, (a_fHeight*(-1)));
+	for (uint i = 0; i < a_nSubdivisions; i++) {
+		//calculates new starting points
+		startingPoint2 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+		startingPoint3 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+
+		//displays to screen
+		AddTri(startingPoint3, startingPoint2, startingPoint);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +330,31 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//creating rotation matrix
+	glm::mat4 rotationMatrix(1);
+	//generating angle of rotation
+	float angleOfRotation = (2 * PI) / a_nSubdivisions;
+	rotationMatrix = glm::rotate(rotationMatrix, angleOfRotation, vector3(0, 0, 1));
+	//defining start points
+	vector3 startingPoint = vector3(0, 0, 0);
+	vector3 startingPoint2 = vector3(a_fRadius, 0, 0);
+	vector3 startingPoint3 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+
+	//makes cylinder
+	for (uint i = 0; i < a_nSubdivisions; i++) {
+		//calculates new starting points
+		startingPoint2 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+		startingPoint3 = (vector3)(rotationMatrix * vector4(startingPoint2, 0));
+
+		//displays to screen
+		//makes bottom
+		AddTri(startingPoint3, startingPoint2, startingPoint);
+		//makes sides
+		AddQuad(startingPoint2, startingPoint3, vector3(startingPoint2.x, startingPoint2.y, startingPoint2.z + a_fHeight), vector3(startingPoint3.x, startingPoint3.y, startingPoint3.z + a_fHeight));
+		//makes top
+		AddTri(vector3(startingPoint.x, startingPoint.y, startingPoint.z + a_fHeight), vector3(startingPoint2.x, startingPoint2.y, startingPoint2.z + a_fHeight), vector3(startingPoint3.x, startingPoint3.y, startingPoint3.z + a_fHeight));
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -330,7 +384,41 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	//creating rotation matrix
+	glm::mat4 rotationMatrix(1);
+	//generating angle of rotation
+	float angleOfRotation = (2 * PI) / a_nSubdivisions;
+	rotationMatrix = glm::rotate(rotationMatrix, angleOfRotation, vector3(0, 0, 1));
+	//defining start points
+	vector3 startingPoint = vector3(0, 0, 0);
+	
+	vector3 startingPoint1 = vector3(a_fOuterRadius, 0, 0);
+	vector3 startingPoint2 = (vector3)(rotationMatrix * vector4(startingPoint1, 0));
+
+	vector3 startingPoint3 = vector3(a_fInnerRadius, 0, 0);
+	vector3 startingPoint4 = (vector3)(rotationMatrix * vector4(startingPoint3, 0));
+
+	//makes tube1
+	for (uint i = 0; i < a_nSubdivisions; i++) {
+		//calculates new starting points
+		startingPoint1 = (vector3)(rotationMatrix * vector4(startingPoint1, 0));
+		startingPoint2 = (vector3)(rotationMatrix * vector4(startingPoint1, 0));
+		startingPoint3 = (vector3)(rotationMatrix * vector4(startingPoint3, 0));
+		startingPoint4 = (vector3)(rotationMatrix * vector4(startingPoint3, 0));
+
+		//displays to screen
+		//makes bottom
+		AddQuad(startingPoint2, startingPoint1, startingPoint4, startingPoint3);
+
+		//makes outer siding
+		AddQuad(startingPoint1, startingPoint2, vector3(startingPoint1.x, startingPoint1.y, startingPoint1.z + a_fHeight), vector3(startingPoint2.x, startingPoint2.y, startingPoint2.z + a_fHeight));
+		
+		//makes inner siding
+		AddQuad(vector3(startingPoint3.x, startingPoint3.y, startingPoint3.z + a_fHeight), vector3(startingPoint4.x, startingPoint4.y, startingPoint4.z + a_fHeight), startingPoint3, startingPoint4);
+		
+		//makes top
+		AddQuad(vector3(startingPoint1.x, startingPoint1.y, startingPoint1.z + a_fHeight), vector3(startingPoint2.x, startingPoint2.y, startingPoint2.z + a_fHeight), vector3(startingPoint3.x, startingPoint3.y, startingPoint3.z + a_fHeight), vector3(startingPoint4.x, startingPoint4.y, startingPoint4.z + a_fHeight));
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -386,8 +474,83 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//Online resource used to guide the creation of this function : http://www.songho.ca/opengl/gl_sphere.html
+
+	//variable declaration
+	//to hold x, y, and z vertice positions
+	float posX, posY, posZ, xyCalc;
+	float horizontalAngle, zAngle;
+
+	//vector to hold the sphere vertices generated in the first loop
+	std::vector<vector3> m_vertices;
+
+	//calculating verticies
+	for (int i = 0; i <= a_nSubdivisions; i++) {
+
+		//calculating the zAngle (or stackAngle) for the sphere
+		//this is the angle at the 'top' of the sphere, that the melong shaped slices of the sphere are made of
+		zAngle = PI / 2 - i * (PI / a_nSubdivisions);
+		//calculating the distance of xy to be used in future calculations
+		xyCalc = a_fRadius * cosf(zAngle);
+		//Since the nested for loop does one cyclinder-like loop at a time this position only needs to be changed as the vertical position is looped through
+		posZ = a_fRadius * sinf(zAngle);
+
+		//Does the horizontal vertex calculation
+		for (int j = 0; j <= a_nSubdivisions; j++) {
+
+			//calculating the horizontal angle (or sectorAngle) that determines the horizontal rotation of a given triangle
+			horizontalAngle = j * (2 * PI / a_nSubdivisions);
+
+			//calculating the x and y position based on the xy calculation
+			posX = xyCalc * cosf(horizontalAngle);
+			posY = xyCalc * sinf(horizontalAngle);
+
+			//adding the vertice to the vector
+			m_vertices.push_back(vector3(posX, posY, posZ));
+			
+		}
+	}
+
+	//index of point 1 and 2 for triangle drawing purposes
+	int point1, point2;
+
+	//drawing tris by calling AddTri with the vector of vertices
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		
+		//calculating what point in the vector of vertices should be used for point 1
+		point1 = i * (a_nSubdivisions + 1);
+		//incrementing point1 by number of sub divisions +1 as the second angle in the triangle
+		point2 = point1 + a_nSubdivisions + 1;
+
+		//looping through and drawing triangles
+		for (int j = 0; j < a_nSubdivisions; j++) {
+			
+			//prevents vertex out of range
+			if (i != 0) {
+				//adds the first triangle of the horizontal rectangles which make up the sphere
+				AddTri(m_vertices[point1], m_vertices[point2], m_vertices[point1 + 1]);
+			}
+
+			//prevents vertex out of range
+			if (i != (a_nSubdivisions-1)) {
+				//adds the corresponding calculated triangle
+				AddTri(m_vertices[point1 + 1], m_vertices[point2], m_vertices[point2 + 1]);
+			}
+
+
+			//incrementing points
+			point1++;
+			point2++;
+
+		}
+	}
+
+
+
+
+	
+
+	
 	// -------------------------------
 
 	// Adding information about color

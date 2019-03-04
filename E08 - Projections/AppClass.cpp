@@ -53,22 +53,36 @@ void Application::Display(void)
 		m_pCamera->ResetCamera();
 		break;
 	case 2:
+		//Removing Set Perspective Capacity
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPerspective(false);
 		break;
 	case 3:
+		//Position on Positive X Axis to view from side
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(30.0f, 0.0f, 0.0f), vector3(0), -AXIS_Z);
 		break;
 	case 4:
+		//Negative z position target on the Y AXIS
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(0.0f, 0.0f, -15.0f), vector3(0), AXIS_Y);
 		break;
 	case 5:
+		//same as 4, different near/far
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(0.0f, 0.0f, -15.0f), vector3(0), AXIS_Y);
+		m_pCamera->SetNearFar(vector2(7.0f, 1000.0f));
 		break;
 	case 6:
+		//same as 4, different near/far
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(0.0f, 0.0f, -15.0f), vector3(0), AXIS_Y);
+		m_pCamera->SetNearFar(vector2(0.01f, 10.0f));
 		break;
 	case 7:
+		//same as 4, just with a reversed y axis and position target value
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUpward(vector3(0.0f, 0.0f, 15.0f), vector3(0), -AXIS_Y);
 		break;
 	}
 

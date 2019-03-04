@@ -373,18 +373,20 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 
-	//fuck gimbal lock
-	if (fAngleX > 82.0f)
-		fAngleX = 82.0f;
-	if (fAngleY > 82.0f)
-		fAngleY = 82.0f;
 
 	//determining the rotation needed in the X and Y axis based on the fAngleX and fAngleY
-	quaternion rotationX = glm::angleAxis(glm::radians(fAngleX), AXIS_X);
+	quaternion rotationX = glm::angleAxis(glm::radians(fAngleX), m_pCamera->GetRight());
 	quaternion rotationY = glm::angleAxis(glm::radians(fAngleY), AXIS_Y);
 
+	//FIXING GIMBAL LOCK
+	quaternion rotation = m_pCamera->GetOrientation();
+
+	rotation = rotation * rotationX *rotationY;
+	
+	rotation = glm::normalize(rotation);
+
 	//Adding the quarternions to the forward to determine the forward rotation
-	vector3 forwardRotation = m_pCamera->GetForward() * rotationX * rotationY;
+	vector3 forwardRotation = m_pCamera->GetForward() * rotation;
 	//Adding just the rotation y to the right to determine the right rotation (unaffected by rotationX)
 	vector3 sideRotation = m_pCamera->GetRight() * rotationY;
 

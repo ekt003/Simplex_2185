@@ -152,37 +152,46 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 
 void MyCamera::MoveForward(float a_fDistance)
 {
-	m_v3Position += (fwd * -a_fDistance);
-	m_v3Target += (fwd * -a_fDistance);
-	m_v3Above += (fwd * -a_fDistance);
+	m_v3Position += (m_v3Fwd * -a_fDistance);
+	m_v3Target += (m_v3Fwd * -a_fDistance);
+	m_v3Above += (m_v3Fwd * -a_fDistance);
 }
 
 void MyCamera::MoveVertical(float a_fDistance){
-	m_v3Position += (up * -a_fDistance);
-	m_v3Target += (up * -a_fDistance);
-	m_v3Above += (up * -a_fDistance);
+	m_v3Position += (m_v3Up * -a_fDistance);
+	m_v3Target += (m_v3Up * -a_fDistance);
+	m_v3Above += (m_v3Up * -a_fDistance);
 }//Needs to be defined
  
 void MyCamera::MoveSideways(float a_fDistance){
-	m_v3Position += (right * -a_fDistance);
-	m_v3Target += (right * -a_fDistance);
-	m_v3Above += (right * -a_fDistance);
+	m_v3Position += (m_v3Right * -a_fDistance);
+	m_v3Target += (m_v3Right * -a_fDistance);
+	m_v3Above += (m_v3Right * -a_fDistance);
 }//Needs to be defined
 
 //Getter and Setter for forward vector
 vector3 MyCamera::GetForward() {
-	return fwd;
+	return m_v3Fwd;
 }
 
 void MyCamera::SetForward(vector3 a_v3Forward) {
-	fwd = a_v3Forward;
+	m_v3Fwd = a_v3Forward;
 }
 
 //Getter and Setter for right vector
 vector3 MyCamera::GetRight() {
-	return right;
+	return m_v3Right;
 }
 
 void MyCamera::SetRight(vector3 a_v3Forward) {
-	right = a_v3Forward;
+	m_v3Right = a_v3Forward;
+}
+
+//Getter and setter for orientation
+quaternion MyCamera::GetOrientation() {
+	return m_qOrientation;
+}
+
+void MyCamera::SetOrientation(quaternion a_qOrientation) {
+	m_qOrientation = a_qOrientation;
 }

@@ -17,9 +17,11 @@ class MyCamera
 	vector3 m_v3Above = vector3(0.0f, 1.0f, 0.0f); //What is above the camera
 
 	//forward, right and up vectors to be used for their respective movements
-	vector3 fwd = vector3(0.0f, 0.0f, -1.0f);
-	vector3 up = vector3(0.0f, -1.0f, 0.0f);
-	vector3 right = vector3(-1.0f, 0.0f, 0.0f);
+	vector3 m_v3Fwd = vector3(0.0f, 0.0f, -1.0f);
+	vector3 m_v3Up = vector3(0.0f, -1.0f, 0.0f);
+	vector3 m_v3Right = vector3(-1.0f, 0.0f, 0.0f);
+
+	quaternion m_qOrientation;
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -246,6 +248,11 @@ public:
 
 	//Sets the camera's right vector
 	void SetRight(vector3 a_v3Right);
+
+	//Gets Orientation
+	quaternion GetOrientation();
+	//Sets Orientation
+	void SetOrientation(quaternion m_quatOrientation);
 };
 
 } //namespace Simplex

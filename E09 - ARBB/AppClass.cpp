@@ -31,7 +31,7 @@ void Application::Update(void)
 	m_pSystem->Update();
 
 	//Is the arcball active?
-	ArcBall();
+	ArcBall();   
 
 	//Is the first person camera active?
 	CameraRotation();

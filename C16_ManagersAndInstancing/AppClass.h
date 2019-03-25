@@ -16,8 +16,10 @@ namespace Simplex
 
 class Application
 {
+	uint u_mSquare = 30;
 	MyCamera* m_pCamera = nullptr;
-	MyMeshManager* m_pMyMeshMngr = nullptr;
+	MyMesh* m_pTemp = nullptr;
+	MyMesh* m_pMyMeshMngr = nullptr;
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 private:
 	static ImGuiObject gui; //GUI object

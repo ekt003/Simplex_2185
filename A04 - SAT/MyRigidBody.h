@@ -39,11 +39,15 @@ class MyRigidBody
 	std::set<MyRigidBody*> m_CollidingRBSet; //set of rigid bodies this one is colliding with
 
 public:
+	
+	bool TestAxises(MyRigidBody* const a_pOther, matrix3 rotation, vector3 trans);
+	
 	/*
 	Usage: Constructor
 	Arguments: std::vector<vector3> a_pointList -> list of points to make the Rigid Body for
 	Output: class object instance
 	*/
+
 	MyRigidBody(std::vector<vector3> a_pointList);
 	/*
 	Usage: Copy Constructor

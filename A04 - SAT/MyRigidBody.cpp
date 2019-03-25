@@ -287,6 +287,96 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
+	matrix3 rotationMatrix; //for storing rotations of the rigid bodies
+	vector3 localSpace[3]; //for the vector3s converted to global
+	vector3 otherSpace[3]; //for the vector3s of the other object converted to global
+
+	//converting our m4
+	localSpace[0] = vector3(m_m4ToWorld * vector4(1, 0, 0, 0));
+	localSpace[1] = vector3(m_m4ToWorld * vector4(0, 1, 0, 0));
+	localSpace[2] = vector3(m_m4ToWorld * vector4(0, 0, 1, 0));
+
+	//converting other m4
+	otherSpace[0] = vector3(a_pOther->GetModelMatrix() * vector4(1, 0, 0, 0));
+	otherSpace[1] = vector3(a_pOther->GetModelMatrix() * vector4(0, 1, 0, 0));
+	otherSpace[2] = vector3(a_pOther->GetModelMatrix() * vector4(0, 0, 1, 0));
+
+	vector3 translation = a_pOther->GetCenterGlobal() - GetCenterGlobal();
+	translation = vector3(glm::dot(translation, localSpace[0]), glm::dot(translation, localSpace[1]), glm::dot(translation, localSpace[2]));
+
+	//doing the dot product as per what the book says: www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			rotationMatrix[i][j] = glm::dot(localSpace[i], otherSpace[i]); //creates rotation matrix via the dot product of the local and other rigid body
+		}
+	}
+
+	//Axis Tests
+	//Moved into seperate function for readability
+	bool isColliding = TestAxises(a_pOther, rotationMatrix, translation);
+
+	if (isColliding)
+		return 1;
+
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	return 0;
 }
+
+//may god have mercy on my soul 
+//this method is SOOOOOO messy, I really tried to streamline it into one small method but there were so many got dang variables
+//tldr is that it checks for collisions along all possible axises
+bool MyRigidBody::TestAxises(MyRigidBody* const a_pOther, matrix3 rotation, vector3 trans) {
+	
+	//Basic Axis Checks
+	if (std::abs(trans[0]) > m_v3HalfWidth[0] + a_pOther->m_v3HalfWidth[0] * std::abs(rotation[0][0]) + a_pOther->m_v3HalfWidth[1] * std::abs(rotation[0][1]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[0][2]))
+		return true;
+
+	if (std::abs(trans[0] * rotation[0][0] + trans[1] * rotation[1][0] + trans[2] * rotation[2][0]) > m_v3HalfWidth[0] * std::abs(rotation[1][0]) + m_v3HalfWidth[2] * std::abs(rotation[2][0]) + a_pOther->m_v3HalfWidth[0])
+		return true;
+
+	if (std::abs(trans[1]) > m_v3HalfWidth[1] + a_pOther->m_v3HalfWidth[0] * std::abs(rotation[1][0]) + a_pOther->m_v3HalfWidth[1] * std::abs(rotation[1][1]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[1][2]))
+		return true;
+	
+	if (std::abs(trans[1] * rotation[0][1] + trans[1] * rotation[1][1] + trans[2] * rotation[2][1]) > m_v3HalfWidth[0] * std::abs(rotation[1][1]) + m_v3HalfWidth[2] * std::abs(rotation[2][1]) + a_pOther->m_v3HalfWidth[1])
+		return true;
+
+	if (std::abs(trans[2]) > m_v3HalfWidth[2] + a_pOther->m_v3HalfWidth[0] * std::abs(rotation[2][0]) + a_pOther->m_v3HalfWidth[1] * std::abs(rotation[2][1]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[2][2]))
+		return true;
+	
+	if (std::abs(trans[2] * rotation[0][2] + trans[1] * rotation[1][2] + trans[2] * rotation[2][2]) > m_v3HalfWidth[0] * std::abs(rotation[1][2]) + m_v3HalfWidth[2] * std::abs(rotation[2][2]) + a_pOther->m_v3HalfWidth[2])
+		return true;
+
+
+
+	//The Ones I had to break out a piece of paper and some tears for
+	if ((std::abs(trans[0] * std::abs(rotation[2][0]) - trans[2] * rotation[0][0])) > (m_v3HalfWidth[0] * std::abs(rotation[2][0]) + m_v3HalfWidth[2] * std::abs(rotation[0][0])) + (a_pOther->m_v3HalfWidth[1] * std::abs(rotation[1][2]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[1][1])))
+		return true;
+
+	if ((std::abs(trans[0] * std::abs(rotation[2][1]) - trans[2] * rotation[0][1])) > (m_v3HalfWidth[0] * std::abs(rotation[2][1]) + m_v3HalfWidth[2] * std::abs(rotation[0][1])) + (a_pOther->m_v3HalfWidth[0] * std::abs(rotation[1][2]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[1][0])))
+		return true;
+
+	if ((std::abs(trans[0] * std::abs(rotation[2][2]) - trans[2] * rotation[0][2])) > (m_v3HalfWidth[0] * std::abs(rotation[2][2]) + m_v3HalfWidth[2] * std::abs(rotation[0][2])) + (a_pOther->m_v3HalfWidth[0] * std::abs(rotation[1][1]) + a_pOther->m_v3HalfWidth[1] * std::abs(rotation[1][0])))
+		return true;
+
+	if ((std::abs(trans[1] * std::abs(rotation[0][0]) - trans[0] * rotation[1][0])) > (m_v3HalfWidth[0] * std::abs(rotation[1][0]) + m_v3HalfWidth[1] * std::abs(rotation[0][0])) + (a_pOther->m_v3HalfWidth[1] * std::abs(rotation[2][2]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[2][1])))
+		return true;
+
+	if ((std::abs(trans[1] * std::abs(rotation[0][1]) - trans[0] * rotation[1][1])) > (m_v3HalfWidth[0] * std::abs(rotation[1][1]) + m_v3HalfWidth[1] * std::abs(rotation[0][1])) + (a_pOther->m_v3HalfWidth[0] * std::abs(rotation[2][2]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[2][0])))
+		return true;
+
+	if ((std::abs(trans[1] * std::abs(rotation[0][2]) - trans[0] * rotation[1][2])) > (m_v3HalfWidth[0] * std::abs(rotation[1][2]) + m_v3HalfWidth[1] * std::abs(rotation[0][2])) + (a_pOther->m_v3HalfWidth[0] * std::abs(rotation[2][1]) + a_pOther->m_v3HalfWidth[1] * std::abs(rotation[2][0])))
+		return true;
+
+	if ((std::abs(trans[2] * std::abs(rotation[1][0]) - trans[1] * rotation[2][0])) > (m_v3HalfWidth[1] * std::abs(rotation[2][0]) + m_v3HalfWidth[2] * std::abs(rotation[1][0])) + (a_pOther->m_v3HalfWidth[1] * std::abs(rotation[0][2]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[0][1])))
+		return true;
+
+	if ((std::abs(trans[2] * std::abs(rotation[1][1]) - trans[1] * rotation[2][1])) > (m_v3HalfWidth[1] * std::abs(rotation[2][1]) + m_v3HalfWidth[2] * std::abs(rotation[1][1])) + (a_pOther->m_v3HalfWidth[0] * std::abs(rotation[0][2]) + a_pOther->m_v3HalfWidth[2] * std::abs(rotation[0][0])))
+		return true;
+
+	if ((std::abs(trans[2] * std::abs(rotation[1][2]) - trans[1] * rotation[2][2])) > (m_v3HalfWidth[1] * std::abs(rotation[2][2]) + m_v3HalfWidth[2] * std::abs(rotation[1][2])) + (a_pOther->m_v3HalfWidth[1] * std::abs(rotation[0][1]) + a_pOther->m_v3HalfWidth[1] * std::abs(rotation[0][0])))
+		return true;
+
+
+	return false;
+}
+

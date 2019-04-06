@@ -325,6 +325,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 //may god have mercy on my soul 
 //this method is SOOOOOO messy, I really tried to streamline it into one small method but there were so many got dang variables
 //tldr is that it checks for collisions along all possible axises
+//this method is ENTIRELY based off of this book: www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf
 bool MyRigidBody::TestAxises(MyRigidBody* const a_pOther, matrix3 rotation, vector3 trans) {
 	
 	//Basic Axis Checks

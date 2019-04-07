@@ -6,7 +6,7 @@
 namespace Simplex
 {
 
-class Octant
+class MyOctant
 {
 	static uint m_uOctantCount; //number of octants
 	static uint m_uMaxLevel; //max octant level
@@ -26,50 +26,55 @@ class Octant
 	vector3 m_v3Min = vector3(0.0f); //octant min
 	vector3 m_v3Max = vector3(0.0f); //octant max
 
-	Octant* m_pParent = nullptr;
-	Octant* m_pChild[8];
+	MyOctant* m_pParent = nullptr; //octant's parent nodes
+	MyOctant* m_pChild[8]; //octant's children nodes
 
-	std::vector<uint> m_EntityList;
+	std::vector<uint> m_EntityList; //entity manager list
 
-	Octant* m_pRoot = nullptr;
-	std::vector<Octant*> m_lChild;
+	MyOctant* m_pRoot = nullptr; //root
+	std::vector<MyOctant*> m_lChild; //root nodes
 
 
 
 	public:
 		//constructors
-		Octant(uint a_maxLevel = 2, uint a_nIdealEntityCount = 5);
-		Octant(vector3 a_v3Center, float a_fSize);
-		Octant(Octant const& other);
-		Octant& operator=(Octant const& other);
+		MyOctant(uint a_maxLevel = 2, uint a_nIdealEntityCount = 5);
+		MyOctant(vector3 a_v3Center, float a_fSize);
+		MyOctant(MyOctant const& other);
+		MyOctant& operator=(MyOctant const& other);
 		//destructor for cleanup
-		~Octant(void);
+		~MyOctant(void);
 
-		void Swap(Octant& other);
+		//swaps octant with other octant
+		void Swap(MyOctant& other);
 
+		//Get Methods
 		float GetSize(void);
 
 		vector3 GetCenterGlobal(void);
 
-		vector3 GetMinGloval(void);
+		vector3 GetMinGlobal(void);
 
 		vector3 GetMaxGlobal(void);
 
+		MyOctant* GetChild(uint a_nChild);
+
+		MyOctant* GetParent(void);
+
+		//determines if there is collision
 		bool IsColliding(uint a_uRBIndex);
 
+		//displaying octree
 		void Display(uint a_nIndex, vector3 a_v3Color = C_YELLOW);
-
 		void Display(vector3 a_v3Color = C_YELLOW);
 
+		//displaying octree leaves
 		void DisplayLeafs(vector3 a_v3Color = C_YELLOW);
 
 		void ClearEntityList(void);
 
+		//dividing octree into sections
 		void Subdivide(void);
-
-		Octant* GetChild(uint a_nChild);
-
-		Octant* GetParent(void);
 
 		bool IsLeaf(void);
 
@@ -84,11 +89,11 @@ class Octant
 		uint GetOctantCount(void);
 
 	private:
-		void Release(void);
+		void Release(void); //destroys octree
 
-		void Init(void);
+		void Init(void); //creates octree
 
-		void ConstructList(void);
+		void ConstructList(void); //recursive construction of list
 
 	};
 

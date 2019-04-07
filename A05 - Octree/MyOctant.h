@@ -1,38 +1,38 @@
-#ifndef _OCTANTCLASS_H_
-#define _OCTANTCLASS_H_
+#ifndef _MYOCTANTCLASS_H_
+#define _MYOCTANTCLASS_H_
 
 #include "MyEntityManager.h"
 
 namespace Simplex
 {
 
-class MyOctant
-{
-	static uint m_uOctantCount; //number of octants
-	static uint m_uMaxLevel; //max octant level
-	static uint m_uIdealEntityCount; //how many entities the octant contains
+	class MyOctant
+	{
+		static uint m_uOctantCount; //number of octants
+		static uint m_uMaxLevel; //max octant level
+		static uint m_uIdealEntityCount; //how many entities the octant contains
 
-	uint m_uID = 0; //octant ID
-	uint m_uLevel = 0; //octant level
-	uint m_uChildren = 0; //octant's children
+		uint m_uID = 0; //octant ID
+		uint m_uLevel = 0; //octant level
+		uint m_uChildren = 0; //octant's children
 
-	float m_fSize = 0.0f; //octant size
+		float m_fSize = 0.0f; //octant size
 
-	//Singletons
-	MeshManager* m_pMeshMngr = nullptr; //mesh manager
-	MyEntityManager* m_pEntityMngr = nullptr; //entity manager
+		//Singletons
+		MeshManager* m_pMeshMngr = nullptr; //mesh manager
+		MyEntityManager* m_pEntityMngr = nullptr; //entity manager
 
-	vector3 m_v3Center = vector3(0.0f); //octant center
-	vector3 m_v3Min = vector3(0.0f); //octant min
-	vector3 m_v3Max = vector3(0.0f); //octant max
+		vector3 m_v3Center = vector3(0.0f); //octant center
+		vector3 m_v3Min = vector3(0.0f); //octant min
+		vector3 m_v3Max = vector3(0.0f); //octant max
 
-	MyOctant* m_pParent = nullptr; //octant's parent nodes
-	MyOctant* m_pChild[8]; //octant's children nodes
+		MyOctant* m_pParent = nullptr; //octant's parent nodes
+		MyOctant* m_pChild[8]; //octant's children nodes
 
-	std::vector<uint> m_EntityList; //entity manager list
+		std::vector<uint> m_EntityList; //entity manager list
 
-	MyOctant* m_pRoot = nullptr; //root
-	std::vector<MyOctant*> m_lChild; //root nodes
+		MyOctant* m_pRoot = nullptr; //root
+		std::vector<MyOctant*> m_lChild; //root nodes
 
 
 

@@ -56,8 +56,9 @@ void Application::Display(void)
 	ClearScreen();
 
 	//display octree
-	if (m_uOctantID == -1)
+	if (m_uOctantID == -1) {
 		m_pRoot->Display();
+	}
 	else
 		m_pRoot->Display(m_uOctantID);
 	

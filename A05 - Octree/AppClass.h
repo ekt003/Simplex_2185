@@ -12,7 +12,7 @@ Date: 2017/06
 
 #include "MyOctant.h"
 
-//#include "Simplex\Physics\Octant.h"
+#include "Simplex\Physics\Octant.h"
 
 namespace Simplex
 {

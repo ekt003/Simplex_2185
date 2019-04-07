@@ -12,7 +12,7 @@ void MyOctant::Init(void) {
 	m_fSize = 0.0f;
 	m_uID = m_uOctantCount;
 	m_uLevel = 0;
-	
+
 	//center, min, and max have not been calculated yet
 	m_v3Center = vector3(0.0f);
 	m_v3Min = vector3(0.0f);
@@ -45,6 +45,8 @@ void MyOctant::ConstructList(void)
 //swaps octant information with another given octant
 void MyOctant::Swap(MyOctant & other)
 {
+	std::swap(m_uChildren, other.m_uChildren);
+
 	std::swap(m_v3Center, other.m_v3Center);
 	std::swap(m_v3Max, other.m_v3Max);
 	std::swap(m_v3Min, other.m_v3Min);
@@ -53,32 +55,18 @@ void MyOctant::Swap(MyOctant & other)
 	std::swap(m_uID, other.m_uID);
 	std::swap(m_pRoot, other.m_pRoot);
 	std::swap(m_lChild, other.m_lChild);
-
-	std::swap(m_uChildren, other.m_uChildren);
+	std::swap(m_uLevel, other.m_uLevel);
+	std::swap(m_pParent, other.m_pParent);
 
 	m_pMeshMngr = MeshManager::GetInstance();
 	m_pEntityMngr = MyEntityManager::GetInstance();
 
-	std::swap(m_uLevel, other.m_uLevel);
-	std::swap(m_pParent, other.m_pParent);
+	
 
 	//swaps children
 	for (int i = 0; i < 8; i++) {
 		std::swap(m_pChild[i], other.m_pChild[i]);
 	}
-}
-
-//destructor which can be used more than once at the end of the program
-void MyOctant::Release(void)
-{
-	if (m_uLevel == 0)
-		KillBranches();
-
-	//resets variables
-	m_uChildren = 0;
-	m_fSize = 0.0f;
-	m_EntityList.clear();
-	m_lChild.clear();
 }
 
 //Size Getter
@@ -121,27 +109,27 @@ bool MyOctant::IsColliding(uint a_uRBIndex)
 
 	MyEntity* pEntity = m_pEntityMngr->GetEntity(a_uRBIndex);
 	MyRigidBody* pRigidBody = pEntity->GetRigidBody();
-	vector3 v3MaxO = pRigidBody->GetMaxGlobal();
-	vector3 v3MinO = pRigidBody->GetMinGlobal();
+	vector3 v3MaxG = pRigidBody->GetMaxGlobal();
+	vector3 v3MinG = pRigidBody->GetMinGlobal();
 
 	//Hey remember that sweet sweet AABB?
 
 	//checking x axis collisions
-	if (m_v3Max.x < v3MinO.x)
+	if (m_v3Max.x < v3MinG.x)
 		return false;
-	if (m_v3Min.x > v3MaxO.x)
+	if (m_v3Min.x > v3MaxG.x)
 		return false;
 
 	//checking y axis collisions
-	if (m_v3Max.y < v3MinO.y)
+	if (m_v3Max.y < v3MinG.y)
 		return false;
-	if (m_v3Min.y > v3MaxO.y)
+	if (m_v3Min.y > v3MaxG.y)
 		return false;
 
 	//checking z axis collisions
-	if (m_v3Max.z < v3MinO.z)
+	if (m_v3Max.z < v3MinG.z)
 		return false;
-	if (m_v3Min.z > v3MaxO.z)
+	if (m_v3Min.z > v3MaxG.z)
 		return false;
 
 	return true;
@@ -156,7 +144,7 @@ void MyOctant::Display(uint a_nIndex, vector3 a_v3Color)
 		return;
 	}
 
-	for (int i = 0; i < m_uChildren; i++) {
+	for (size_t i = 0; i < m_uChildren; i++) {
 		m_pChild[i]->Display(a_nIndex);
 	}
 }
@@ -174,7 +162,7 @@ void MyOctant::Display(vector3 a_v3Color)
 //Renders octree leaves
 void MyOctant::DisplayLeafs(vector3 a_v3Color)
 {
-	uint leaves = m_lChild.size();
+	int leaves = m_lChild.size();
 	for (int i = 0; i < leaves; i++) {
 		m_lChild[i]->DisplayLeafs(a_v3Color);
 	}
@@ -182,7 +170,7 @@ void MyOctant::DisplayLeafs(vector3 a_v3Color)
 	m_pMeshMngr->AddWireCubeToRenderList(glm::translate(IDENTITY_M4, m_v3Center) * glm::scale(vector3(m_fSize)), a_v3Color, RENDER_WIRE);
 }
 
-//clears not only our entity list but the entity list of our children
+//clears not only our entity list but the entity lists of our children
 void MyOctant::ClearEntityList(void)
 {
 	for (int i = 0; i < m_uChildren; i++) {
@@ -195,7 +183,7 @@ void MyOctant::ClearEntityList(void)
 //Divides octree into more sections
 void MyOctant::Subdivide(void)
 {
-	//if there is a lower level
+	//if there is are preexisting subdivisions, don't bother
 	if (m_uChildren != 0)
 		return;
 	
@@ -211,8 +199,8 @@ void MyOctant::Subdivide(void)
 
 	//Child Number 1
 	v3Center.x -= size/(2.0f);
-	v3Center.y -= size / (2.0f);
-	v3Center.z -= size / (2.0f);
+	v3Center.y -= size/(2.0f);
+	v3Center.z -= size/(2.0f);
 	m_pChild[0] = new MyOctant(v3Center, size);
 
 	//Child Number 2
@@ -245,8 +233,8 @@ void MyOctant::Subdivide(void)
 
 	//Setting values for all the children
 	for (int i = 0; i < 8; i++) {
-		m_pChild[i]->m_pParent = this;
 		m_pChild[i]->m_pRoot = m_pRoot;
+		m_pChild[i]->m_pParent = this;
 		m_pChild[i]->m_uLevel = m_uLevel + 1;
 		if (m_pChild[i]->ContainsMoreThan(m_uIdealEntityCount))
 			m_pChild[i]->Subdivide();
@@ -260,6 +248,7 @@ MyOctant * MyOctant::GetChild(uint a_nChild)
 	//if child doesn't exist, return nullptr
 	if (a_nChild > 7)
 		return nullptr;
+
 	return m_pChild[a_nChild];
 }
 
@@ -272,7 +261,10 @@ MyOctant * MyOctant::GetParent(void)
 //determines if current octant is a leaf
 bool MyOctant::IsLeaf(void)
 {
-	return m_uChildren == 8;
+	if (m_uChildren == 0)
+		return true;
+
+	return false;
 }
 
 //determines if there are more than a certain number of entities
@@ -310,18 +302,19 @@ void MyOctant::ConstructTree(u_int a_nMaxLevel)
 	if (m_uLevel != 0)
 		return;
 
-	m_uMaxLevel = a_nMaxLevel;
-
 	m_uOctantCount = 1;
+	m_uMaxLevel = a_nMaxLevel;
 
 	//make sure everything is clear and good to go before creation
 	m_EntityList.clear();
 	KillBranches();
 	m_lChild.clear();
 
-	if (ContainsMoreThan(m_uIdealEntityCount))
+	if (ContainsMoreThan(m_uIdealEntityCount)) {
 		Subdivide();
+	}
 
+	//create individualized IDs
 	AssignIDtoEntity();
 
 	//create the tree!
@@ -356,10 +349,10 @@ MyOctant::MyOctant(uint a_nMaxLevel, uint a_nIdealEntityCount)
 	//Initialize all values
 	Init();
 
-	m_uOctantCount = 0;
+	m_uID = m_uOctantCount;
 	m_uMaxLevel = a_nMaxLevel;
 	m_uIdealEntityCount = a_nIdealEntityCount;
-	m_uID = m_uOctantCount;
+	m_uOctantCount = 0;
 
 	//setting octree root and children
 	m_pRoot = this;
@@ -372,16 +365,15 @@ MyOctant::MyOctant(uint a_nMaxLevel, uint a_nIdealEntityCount)
 	uint nObjects = m_pEntityMngr->GetEntityCount();
 	for (int i = 0; i < nObjects; i++) {
 		MyEntity* pEntity = m_pEntityMngr->GetEntity(i);
-		MyRigidBody* pRigidBody = new MyRigidBody(lMinMax);
-		lMinMax.push_back(pRigidBody->GetMinGlobal());
+		MyRigidBody* pRigidBody = pEntity->GetRigidBody();
 		lMinMax.push_back(pRigidBody->GetMaxGlobal());
+		lMinMax.push_back(pRigidBody->GetMinGlobal());
 	}
 
 	MyRigidBody* pRigidBody = new MyRigidBody(lMinMax);
-
 	vector3 vHalfWidth = pRigidBody->GetHalfWidth();
 	float fMax = vHalfWidth.x;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 1; i < 3; i++) {
 		if (fMax < vHalfWidth[i])
 			fMax = vHalfWidth[i];
 	}
@@ -393,8 +385,8 @@ MyOctant::MyOctant(uint a_nMaxLevel, uint a_nIdealEntityCount)
 	//setting newly found center, min, and max
 	m_fSize = fMax * 2.0f;
 	m_v3Center = v3Center;
-	m_v3Min = m_v3Center - (vector3(fMax));
 	m_v3Max = m_v3Center + (vector3(fMax));
+	m_v3Min = m_v3Center - (vector3(fMax));
 
 	//incrementing octant count
 	m_uOctantCount++;
@@ -409,30 +401,33 @@ MyOctant::MyOctant(vector3 a_v3Center, float a_fSize) {
 	m_v3Center = a_v3Center;
 	m_fSize = a_fSize;
 
-	m_v3Min = m_v3Center - (vector3(m_fSize) / 2.0f);
 	m_v3Max = m_v3Center + (vector3(m_fSize) / 2.0f);
+	m_v3Min = m_v3Center - (vector3(m_fSize) / 2.0f);
 
 	m_uOctantCount++;
 }
 
 //Copy Constructor
 MyOctant::MyOctant(MyOctant const& other) {
-	m_uChildren = other.m_uChildren;
+	//setting everything to equal the other Octant
 	m_v3Center = other.m_v3Center;
-	m_v3Min = other.m_v3Min;
 	m_v3Max = other.m_v3Max;
+	m_v3Min = other.m_v3Min;
+	m_uChildren = other.m_uChildren;
 
-	m_fSize = other.m_fSize;
-	m_uID = other.m_uID;
 	m_uLevel = other.m_uLevel;
 	m_pParent = other.m_pParent;
+	m_fSize = other.m_fSize;
+	m_uID = other.m_uID;
 
 	m_pRoot, other.m_pRoot;
 	m_lChild, other.m_lChild;
 
+	//Singleton instances
 	m_pMeshMngr = MeshManager::GetInstance();
 	m_pEntityMngr = MyEntityManager::GetInstance();
 
+	//setting children
 	for (int i = 0; i < 8; i++) {
 		m_pChild[i] = other.m_pChild[i];
 	}
@@ -449,6 +444,19 @@ MyOctant& MyOctant::operator=(MyOctant const& other) {
 	}
 
 	return *this;
+}
+
+//destructor which can be used more than once at the end of the program
+void MyOctant::Release(void)
+{
+	if (m_uLevel == 0)
+		KillBranches();
+
+	//resets variables
+	m_uChildren = 0;
+	m_fSize = 0.0f;
+	m_EntityList.clear();
+	m_lChild.clear();
 }
 
 //Destructor
